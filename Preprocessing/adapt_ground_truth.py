@@ -1,7 +1,7 @@
 """ Adapt the UK Biobank ground-truth """
 
 import sys
-sys.path.append('..')
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
 import os
 import numpy as np
@@ -29,7 +29,7 @@ def adapt_ground_truth(adapt_original=True):
         statistics = s_file.readlines()
 
     statistics = [x.strip() for x in statistics]
-    statistics = [[int(z) for z in y.split()[:-4]] + [float(z) for z in y.split()[-4:]] \
+    statistics = [ [y.split()[0]] + [int(z) for z in y.split()[1:-4]] + [float(z) for z in y.split()[-4:]] \
         for y in statistics]
 
     # Read the doubtful cases which will be excluded
@@ -78,10 +78,10 @@ def adapt_ground_truth(adapt_original=True):
             base_slice = -1
             keep_base_lv = False
             for s in range(int(round(slices * 0.5 + 0.001)), -1, -1):
-                gt_file0 = os.path.join(crop_2D_path, \
-                    "crop_2D_gt_{}_{}.png".format(str(s).zfill(2), str(t).zfill(2)) )
-                gt_file1 = os.path.join(crop_2D_path, \
-                    "crop_2D_gt_{}_{}.png".format(str(s+1).zfill(2), str(t).zfill(2)) )
+                gt_file0 = os.path.join(original_2D_path, \
+                    "original_gt_2D_{}_{}.png".format(str(s).zfill(2), str(t).zfill(2)) )
+                gt_file1 = os.path.join(original_2D_path, \
+                    "original_gt_2D_{}_{}.png".format(str(s+1).zfill(2), str(t).zfill(2)) )
                 
                 gt_data0 = np.array(Image.open(gt_file0))
                 gt_data1 = np.array(Image.open(gt_file1))

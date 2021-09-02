@@ -1,23 +1,23 @@
 """ The module of ROI-net """
 
 import sys
-sys.path.append('..')
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
-from keras.models import Model
-from keras.layers import (
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import (
     Input,
     Activation
 )
-from keras.layers.convolutional import (
+from tensorflow.keras.layers import (
     Conv2D,
     MaxPooling2D,
     UpSampling2D
 )
-from keras.layers.merge import (
+from tensorflow.keras.layers import (
     Add,
     Concatenate
 )
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 from helpers import (
     conv_bn_leakyrelu_repetition_block,
@@ -33,18 +33,18 @@ def net_module(input_shape, num_outputs):
         Returns:
             The keras `Model`.
     """
-    CHANNEL_AXIS = 3
+    CHANNEL_AXIS=3
     handle_dim_ordering()
     if len(input_shape) != 3:
         raise Exception("Input shape should be a tuple (nb_rows, nb_cols, nb_channels)")
 
     # Permute dimension order if necessary
-    if K.image_dim_ordering() != 'tf':
+    if K.image_data_format() != 'channels_last':
         input_shape = (input_shape[2], input_shape[0], input_shape[1])
 
     input = Input(shape=input_shape, name="input")
-
     base_channel = 24
+
 
 
 
@@ -52,7 +52,6 @@ def net_module(input_shape, num_outputs):
     block_conv_1 = conv_bn_leakyrelu_repetition_block(filters=base_channel, kernel_size=(3,3),     
         repetitions=2, first_layer_down_size=False, alpha=0.1, 
         name="conv_block1")(input)
-
 
     block_pool_2 = MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid', 
         data_format=None, name="pool_block2")(block_conv_1)

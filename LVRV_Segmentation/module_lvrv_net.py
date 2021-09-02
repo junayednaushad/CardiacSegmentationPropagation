@@ -1,27 +1,27 @@
 """ The module of LVRV-net """
 
 import sys
-sys.path.append('..')
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
-from keras.models import Model
-from keras.layers import (
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import (
     Input,
     Activation,
     UpSampling2D
 )
-from keras.layers.convolutional import (
+from tensorflow.keras.layers import (
     Conv2D,
     MaxPooling2D
 )
-from keras.layers.core import (
+from tensorflow.keras.layers import (
     Reshape,
     Lambda
 )
-from keras.layers.merge import (
+from tensorflow.keras.layers import (
     Add,
     Concatenate
 )
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 from helpers import (
     conv_bn_leakyrelu_repetition_block,
@@ -44,7 +44,7 @@ def net_module(input_shape, num_outputs):
         raise Exception("Input shape should be a tuple (nb_rows, nb_cols, nb_channels)")
 
     # Permute dimension order if necessary
-    if K.image_dim_ordering() != 'tf':
+    if K.image_data_format() != 'channels_last':
         input_shape = (input_shape[2], input_shape[0], input_shape[1])
 
     input_img0 = Input(shape=input_shape, name="input_img0")

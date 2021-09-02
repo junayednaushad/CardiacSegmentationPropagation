@@ -4,18 +4,23 @@
 import os
 import numpy as np
 import scipy
+from cv2 import resize
 import math
 from PIL import Image as pil_image
 import tensorflow as tf
+from tensorflow import keras
 
-from keras.models import (
+from tensorflow.keras.models import (
     Model,
     load_model
 )
-from keras.optimizers import Adam
-from keras import backend as K
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
+
+import sys
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
 from helpers import (
     dice_coef2,
@@ -26,12 +31,11 @@ from image2 import (
     array_to_img,
     ImageDataGenerator2
 )
-from data_roi_predict import ukbiobank_data
+from data_roi_predict import acdc_data
 
 from module_roi_net import net_module
 
 import config
-
 
 
 def predict_roi_net():
@@ -50,14 +54,12 @@ def predict_roi_net():
 
     model.load_weights(filepath=os.path.join(code_path, 'ROI', 'model_roi_net_epoch{}.h5'.format(str(epochs).zfill(3))) )
 
-    model.compile(optimizer=Adam(lr=initial_lr), loss=dice_coef2_loss, 
+    model.compile(optimizer=Adam(learning_rate=initial_lr), loss=dice_coef2_loss, 
         metrics=[dice_coef2])
 
     ######
     # Data
-    train_img_list, train_gt_list, test_img_list, test_gt_list = ukbiobank_data()
-    predict_img_list = train_img_list + test_img_list
-    predict_gt_list = train_gt_list + test_gt_list
+    predict_img_list, predict_gt_list = acdc_data()
 
     predict_img_list = sorted(predict_img_list)
     predict_gt_list = sorted(predict_gt_list)
@@ -131,7 +133,8 @@ def predict_roi_net():
 
         for j in range(len(img_list_batch)):
             img_path = img_list_batch[j]
-            #print(img_path)
+
+            
             img_size = pil_image.open(img_path).size
             h = img_size[0]
             w = img_size[1]
@@ -139,18 +142,22 @@ def predict_roi_net():
 
             # reshape and crop the predicted mask to the original size
             mask = np.reshape(binarized_predict_masks[j], newshape=(input_img_size, input_img_size))
-            resized_mask = scipy.misc.imresize(mask, size=(size, size), interp='nearest')/255.0
+            resized_mask = resize(mask, (size,size))/255.0
+            # resized_mask = scipy.misc.imresize(mask, size=(size, size), interp='nearest')/255.0
             cropped_resized_mask = resized_mask[((size-w)//2):((size-w)//2 + w), 
                                                 ((size-h)//2):((size-h)//2 + h)]
-            cropped_resized_mask = np.reshape(cropped_resized_mask, newshape=(w, h, 1))
 
             predicted_mask_path = img_path.replace('original_2D', 'mask_original_2D', 2)
+
+            if not os.path.exists(os.path.dirname(predicted_mask_path)):
+                os.makedirs(os.path.dirname(predicted_mask_path))
 
             # save txt file
             predicted_mask_txt_path = predicted_mask_path.replace('.png', '.txt', 1)
             np.savetxt(predicted_mask_txt_path, cropped_resized_mask, fmt='%.6f')
 
             # save image
+            cropped_resized_mask = np.reshape(cropped_resized_mask, newshape=(w, h, 1))
             cropped_resized_mask_img = array_to_img(cropped_resized_mask,
                                                     data_format=None, 
                                                     scale=True)

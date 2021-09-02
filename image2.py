@@ -17,7 +17,7 @@ import warnings
 import multiprocessing.pool
 from functools import partial
 
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 try:
     from PIL import Image as pil_image

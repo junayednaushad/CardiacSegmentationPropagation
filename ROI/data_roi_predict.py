@@ -1,7 +1,7 @@
 """ A function to generate the lists of files for ROI-net inference"""
 
 import sys
-sys.path.append('..')
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
 import os
 
@@ -119,7 +119,25 @@ def ukbiobank_data():
 
     return train_img_list, train_gt_list, test_img_list, test_gt_list
 
+def acdc_data():
+    test_img_list = []
+    test_gt_list = []
+
+    data_dir = config.data_root
+    patients = os.listdir(data_dir)
+    for patient in patients:
+        for img in os.listdir(os.path.join(data_dir, patient, 'original_2D')):
+            if '_gt2_2D' in img:
+                test_gt_list.append(os.path.join(data_dir, patient, 'original_2D', img))
+            if 'gt' not in img:
+                test_img_list.append(os.path.join(data_dir, patient, 'original_2D', img))
+    return test_img_list, test_gt_list
 
 
-
-
+# if __name__ == '__main__':
+#     test_img_list, test_gt_list = acdc_data()
+#     print(test_img_list)
+#     print(len(test_img_list))
+#     print()
+#     print(test_gt_list)
+#     print(len(test_gt_list))

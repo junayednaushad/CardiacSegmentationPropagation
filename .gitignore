@@ -1,0 +1,4 @@
+/LVRV_Segmentation/model_lvrv_net_epoch080.h5
+/LV_Segmentation/model_lv_net_epoch080.h5
+/ROI/model_roi_net_epoch050.h5
+test.ipynb

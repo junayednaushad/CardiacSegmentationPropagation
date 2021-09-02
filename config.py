@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 # Directory of the UK Biobank data
-data_root = '/data/asclepios/share/private/ukbiobank-hearts-296-converted'
+data_root = 'D:\\acdc_training'
 
 # Directory of the CardiacSegmentationPropagation project
-code_root = '/home/qzheng/Programs/tensorflow/my_models/CardiacSegmentationPropagation'
+code_root = 'C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation'
 
 
 # ROI-net

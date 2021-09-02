@@ -1,20 +1,21 @@
 """ The main file to launch the inference of LVRV-net """
 
 import sys
-sys.path.append('..')
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
 import os
 import copy
 import numpy as np
-from itertools import izip
-from scipy.misc import imresize
+# from itertools import izip
+# from scipy.misc import imresize
 from PIL import Image as pil_image
 import tensorflow as tf
+from cv2 import resize
 
-from keras.models import Model
-from keras.optimizers import Adam
-from keras.utils import plot_model
-from keras import backend as K
+from tensorflow.keras import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import plot_model
+from tensorflow.keras import backend as K
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 
@@ -36,7 +37,7 @@ from image2 import (
     ImageDataGenerator2
 )
 
-from data_seg_predict import ukbiobank_data
+from data_seg_predict import acdc_data, ukbiobank_data
 
 from module_lvrv_net import net_module
 
@@ -52,7 +53,7 @@ def predict_lvrv_net():
     epochs = config.lvrv_net_epochs
     batch_size = 1
 
-    database = 'ukbiobank'
+    database = 'acdc'
 
     ###########
     # The model
@@ -80,12 +81,16 @@ def predict_lvrv_net():
         predict_end_slice_list = train_end_slice_list + test_end_slice_list
         predict_base_list = train_base_list + test_base_list
         '''
-        
-        predict_img_list = test_img_list
-        predict_gt_list = test_gt_list
-        predict_first_slice_list = test_first_slice_list
-        predict_end_slice_list = test_end_slice_list
-        predict_base_list = test_base_list
+    
+    if database == 'acdc':
+        test_img_list, test_gt_list, \
+        test_first_slice_list, test_end_slice_list, test_base_list = acdc_data()
+
+    predict_img_list = test_img_list
+    predict_gt_list = test_gt_list
+    predict_first_slice_list = test_first_slice_list
+    predict_end_slice_list = test_end_slice_list
+    predict_base_list = test_base_list
 
 
     predict_sample = len(predict_img_list)
@@ -220,7 +225,7 @@ def predict_lvrv_net():
 
 
         # Combine generators into one which yields image and masks
-        predict_generator = izip(image_minus_generator, image_generator, mask_minus_generator)
+        predict_generator = zip(image_minus_generator, image_generator, mask_minus_generator)
 
 
         img_size = pil_image.open(img_sub_stack[0]).size
@@ -235,7 +240,9 @@ def predict_lvrv_net():
             masks = np.reshape(masks, newshape=(input_img_size, input_img_size, 4))
             masks_resized = np.zeros((size, size, 4))
             for c in range(4):
-                masks_resized[:, :, c] = imresize(masks[:, :, c], (size, size), interp='bilinear')
+                # masks_resized[:, :, c] = imresize(masks[:, :, c], (size, size), interp='bilinear')
+                masks_resized[:, :, c] = resize(masks[:, :, c], (size, size))
+
             prediction_resized = np.argmax(masks_resized, axis=-1)
             prediction_resized = np.reshape(prediction_resized, newshape=(size, size, 1))
 
@@ -253,12 +260,19 @@ def predict_lvrv_net():
             else:
                 prediction_resized = keep_largest_components(prediction_resized, [3], [1, 2, 3])
 
-
+            if database == 'acdc':
+                # labels 1 and 3 need to be swapped
+                prediction_resized[prediction_resized == 3] = 5
+                prediction_resized[prediction_resized == 1] = 3
+                prediction_resized[prediction_resized == 5] = 1
 
             # save txt file
             prediction_path = gt_sub_stack[j]
+            prediction_resized_txt = np.reshape(prediction_resized, newshape=(size, size))
             prediction_txt_path = prediction_path.replace('.png', '.txt', 1)
-            np.savetxt(prediction_txt_path, prediction_resized, fmt='%.6f')
+            if not os.path.exists(os.path.dirname(prediction_txt_path)):
+                os.makedirs(os.path.dirname(prediction_txt_path))
+            np.savetxt(prediction_txt_path, prediction_resized_txt, fmt='%.6f')
 
             # save image
             prediction_img = array_to_img(prediction_resized * 50.0,

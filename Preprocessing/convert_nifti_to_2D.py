@@ -1,7 +1,7 @@
 """ Convert the NIfTI images and ground-truth to groups of 2D PNG files """
 
 import sys
-sys.path.append('..')
+sys.path.append('C:\\Users\\mpnau\\Documents\\ml_programs\\CardiacSegmentationPropagation')
 
 import os
 import numpy as np
